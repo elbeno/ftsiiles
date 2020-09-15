@@ -1,0 +1,173 @@
+#    -*- mode: org -*-
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
+#+OPTIONS: reveal_mathjax:t reveal_rolling_links:nil reveal_keyboard:t reveal_overview:t num:nil
+#+OPTIONS: reveal_width:1600 reveal_height:900
+#+OPTIONS: toc:nil <:nil timestamp:nil email:t reveal_slide_number:"c/t"
+#+REVEAL_MARGIN: 0.1
+#+REVEAL_MIN_SCALE: 0.5
+#+REVEAL_MAX_SCALE: 2.5
+#+REVEAL_TRANS: none
+#+REVEAL_THEME: blood
+#+REVEAL_HLEVEL: 1
+#+REVEAL_EXTRA_CSS: ./presentation.css
+#+REVEAL_ROOT: ../reveal.js/
+
+#+TITLE: C++20 Lambdas: Familiar Template Syntax
+#+AUTHOR: Ben Deane
+#+DATE: September 2020
+
+#+REVEAL_HTML: <script type="text/javascript" src="./presentation.js"></script>
+
+#+REVEAL_TITLE_SLIDE: <h2>%t</h2><br/><h3>A CppCon lightning talk</h3><br/><h3>%a / <a href=\"http://twitter.com/ben_deane\">@ben_deane</a></h3><h4>%d</h4>
+
+* Title slide settings                                             :noexport:
+#+begin_source elisp
+(set-face-foreground 'font-lock-comment-face "magenta")
+(set-face-foreground 'font-lock-comment-delimiter-face "magenta")
+#+end_source
+
+* Generic Lambdas (C++14)
+
+In C++14, we got generic lambdas.
+
+#+begin_src c++
+// I can only say "auto" here
+auto something = [] (auto&& x, auto&& y) {
+  // I have to recover the types through decltype
+  something_else(std::forward<decltype(x)>(x),
+                 std::forward<decltype(y)>(y));
+};
+#+end_src
+
+It was cumbersome to forward things perfectly.
+
+* Familiar Template Syntax Lambdas (C++20)
+
+In C++20, we get Familiar Template Syntax lambdas.
+
+#+begin_src c++
+// I can name the types now
+auto something = [] <class X, class Y> (X&& x, Y&& y) {
+  // And use the names here
+  something_else(std::forward<X>(x),
+                 std::forward<Y>(y));
+};
+#+end_src
+
+[[https://wg21.link/p0428][P0428 Familiar Template Syntax for Generic Lambdas]]
+
+A "template head" is now in the syntax,\\
+to make access to the deduced types much easier.
+
+* OK, it's easier
+
+ - Why is it useful?
+ - Where would I use it?
+ - Are there new use cases?
+
+* Consider ~std::apply~
+
+#+begin_src c++
+namespace detail {
+  template <class F, class Tuple, std::size_t... Is>
+  constexpr decltype(auto) apply_impl(F&& f, Tuple&& t,
+                                      std::index_sequence<Is...>) {
+    return std::invoke(std::forward<F>(f),
+                       std::get<Is>(std::forward<Tuple>(t))...);
+  }
+} // namespace detail
+
+template <class F, class Tuple>
+constexpr decltype(auto) apply(F&& f, Tuple&& t) {
+  return detail::apply_impl(
+    std::forward<F>(f), std::forward<Tuple>(t),
+    std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+}
+#+end_src
+
+I need to delegate to another function just to destructure the template argument.
+
+* C++20 ~std::apply~
+
+How about immediately-invoking a lambda?
+
+#+begin_src c++
+template <class F, class Tuple>
+constexpr decltype(auto) apply(F&& f, Tuple&& t)
+{
+  return [&] <auto... Is> (std::index_sequence<Is...>) {
+      return std::invoke(std::forward<F>(f),
+                         std::get<Is>(std::forward<Tuple>(t))...);
+  }(std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+}
+#+end_src
+
+A familiar template syntax immediately-invoked lambda expression (FTSIILE).
+
+* Another example: for_each on tuples
+
+Here's a simple unary for_each on tuples, using ~std::apply~.
+
+#+begin_src c++
+template <class Tuple, class F>
+F for_each(Tuple&& t, F&& f) {
+  return std::apply(
+    [&] <class... Ts> (Ts&&...ts) { (f(std::forward<Ts>(ts)), ...); },
+    std::forward<Tuple>(t)), f;
+}
+#+end_src
+
+But it gets trickier if we want a binary function over 2 tuples,\\
+or an n-ary function over multiple tuples.
+
+* Another example: for_each on tuples
+
+Adapted from fluentcpp.com's [[https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/]["STL algorithms on Tuples"]]
+
+#+begin_src c++
+template <class Tuple1, class Tuple2, class F, std::size_t... Is>
+F for_each_impl(Tuple1&& t1, Tuple2&& t2, F&& f, std::index_sequence<Is...>)
+{
+  return (std::invoke(f, std::get<Is>(std::forward<Tuple1>(t1)),
+                         std::get<Is>(std::forward<Tuple2>(t2))), ...), f;
+}
+
+template <class Tuple1, class Tuple2, class F>
+constexpr decltype(auto) for_each(Tuple1&& t1, Tuple2&& t2, F&& f)
+{
+  return for_each_impl(std::forward<Tuple1>(t1), std::forward<Tuple2>(t2),
+                       std::forward<F>(f),
+                       std::make_index_sequence<std::tuple_size<
+                         std::remove_reference_t<Tuple1>>::value>{});
+}
+#+end_src
+
+* for_each on tuples with FTSIILEs
+
+Use reference-capture and variadic template head.
+
+#+begin_src c++
+template <class Tuple1, class Tuple2, class F>
+constexpr decltype(auto) for_each(Tuple1&& t1, Tuple2&& t2, F&& f)
+{
+  return [&] <std::size_t... Is> (std::index_sequence<Is...>) {
+    return (std::invoke(f, std::get<Is>(std::forward<Tuple1>(t1)),
+                           std::get<Is>(std::forward<Tuple2>(t2))), ...), f;
+  }(std::make_index_sequence<std::tuple_size<std::remove_reference_t<Tuple1>>::value>{});
+}
+#+end_src
+
+Less forwarding, less noise.
+
+* A little C++20 goodness
+
+If you're delegating to an ancillary function just to destructure a type,
+consider a\\
+Familiar Template Syntax Immediately-Invoked Lambda Expression.
+
+ - No more ~decltype~
+ - Reference-capture provides automatic value category preservation
+ - Simpler argument handling
+ - Especially useful for destructuring with ~std::index_sequence~
+
+FTSIILEs FTW!

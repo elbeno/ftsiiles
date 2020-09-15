@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>C++20 Lambdas: Familiar Template Syntax</title>
+<meta name="author" content="Ben Deane"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="../reveal.js/css/reveal.css"/>
+
+<link rel="stylesheet" href="../reveal.js/css/theme/blood.css" id="theme"/>
+
+<link rel="stylesheet" href="./presentation.css"/>
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = '../reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h2>C++20 Lambdas: Familiar Template Syntax</h2><br/><h3>A CppCon lightning talk</h3><br/><h3>Ben Deane / <a href=\"http://twitter.com/ben_deane\">@ben_deane</a></h3><h4>September 2020</h4>
+</section>
+<script type="text/javascript" src="./presentation.js"></script>
+
+<section>
+<section id="slide-org0797efc">
+<h2 id="org0797efc">Generic Lambdas (C++14)</h2>
+<p>
+In C++14, we got generic lambdas.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #ff00ff;">// </span><span style="color: #ff00ff;">I can only say "auto" here</span>
+<span style="color: #b58900; font-weight: bold;">auto</span> <span style="color: #cb4b16;">something</span> = <span style="color: #2aa198;">[]</span> <span style="color: #2aa198;">(</span><span style="color: #b58900; font-weight: bold;">auto</span>&amp;&amp; <span style="color: #cb4b16;">x</span>, <span style="color: #b58900; font-weight: bold;">auto</span>&amp;&amp; <span style="color: #cb4b16;">y</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+  <span style="color: #ff00ff;">// </span><span style="color: #ff00ff;">I have to recover the types through decltype</span>
+  something_else<span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #dc322f;">(</span>x<span style="color: #dc322f;">)</span><span style="color: #94BFF3;">&gt;(</span>x<span style="color: #94BFF3;">)</span>,
+                 <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #dc322f;">(</span>y<span style="color: #dc322f;">)</span><span style="color: #94BFF3;">&gt;(</span>y<span style="color: #94BFF3;">)</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>;
+</pre>
+</div>
+
+<p>
+It was cumbersome to forward things perfectly.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-orge686455">
+<h2 id="orge686455">Familiar Template Syntax Lambdas (C++20)</h2>
+<p>
+In C++20, we get Familiar Template Syntax lambdas.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #ff00ff;">// </span><span style="color: #ff00ff;">I can name the types now</span>
+<span style="color: #b58900; font-weight: bold;">auto</span> <span style="color: #cb4b16;">something</span> = <span style="color: #2aa198;">[]</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">X</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Y</span><span style="color: #2aa198;">&gt;</span> <span style="color: #2aa198;">(</span><span style="color: #268bd2;">X</span>&amp;&amp; <span style="color: #cb4b16;">x</span>, <span style="color: #cb4b16;">Y</span>&amp;&amp; y<span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+  <span style="color: #ff00ff;">// </span><span style="color: #ff00ff;">And use the names here</span>
+  something_else<span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">X</span><span style="color: #94BFF3;">&gt;(</span>x<span style="color: #94BFF3;">)</span>,
+                 <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">Y</span><span style="color: #94BFF3;">&gt;(</span>y<span style="color: #94BFF3;">)</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>;
+</pre>
+</div>
+
+<p>
+<a href="https://wg21.link/p0428">P0428 Familiar Template Syntax for Generic Lambdas</a>
+</p>
+
+<p>
+A "template head" is now in the syntax,<br />
+to make access to the deduced types much easier.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org437364b">
+<h2 id="org437364b">OK, it's easier</h2>
+<ul>
+<li>Why is it useful?</li>
+<li>Where would I use it?</li>
+<li>Are there new use cases?</li>
+
+</ul>
+
+</section>
+</section>
+<section>
+<section id="slide-orgd2c235e">
+<h2 id="orgd2c235e">Consider <code>std::apply</code></h2>
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #b58900; font-weight: bold;">namespace</span> <span style="color: #859900;">detail</span> <span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #b58900;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple</span>, <span style="color: #859900;">std</span>::<span style="color: #268bd2;">size_t</span><span style="color: #2aa198;">...</span> <span style="color: #cb4b16;">Is</span><span style="color: #b58900;">&gt;</span>
+  <span style="color: #b58900; font-weight: bold;">constexpr</span> <span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #b58900;">(</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #b58900;">)</span> <span style="color: #2aa198;">apply_impl</span><span style="color: #b58900;">(</span><span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span>, <span style="color: #268bd2;">Tuple</span>&amp;&amp; <span style="color: #cb4b16;">t</span>,
+                                      <span style="color: #859900;">std</span>::<span style="color: #268bd2;">index_sequence</span><span style="color: #94BFF3;">&lt;</span>Is<span style="color: #2aa198;">...</span><span style="color: #94BFF3;">&gt;</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+    <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #859900;">std</span>::invoke<span style="color: #94BFF3;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #dc322f;">&lt;</span><span style="color: #268bd2;">F</span><span style="color: #dc322f;">&gt;(</span>f<span style="color: #dc322f;">)</span>,
+                       <span style="color: #859900;">std</span>::get<span style="color: #dc322f;">&lt;</span>Is<span style="color: #dc322f;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #859900;">&gt;(</span>t<span style="color: #859900;">)</span><span style="color: #dc322f;">)</span><span style="color: #2aa198;">...</span><span style="color: #94BFF3;">)</span>;
+  <span style="color: #b58900;">}</span>
+<span style="color: #2aa198;">}</span> <span style="color: #ff00ff;">// </span><span style="color: #ff00ff;">namespace detail</span>
+
+<span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #b58900; font-weight: bold;">constexpr</span> <span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #2aa198;">(</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">apply</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span>, <span style="color: #268bd2;">Tuple</span>&amp;&amp; <span style="color: #cb4b16;">t</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #859900;">detail</span>::apply_impl<span style="color: #b58900;">(</span>
+    <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">F</span><span style="color: #94BFF3;">&gt;(</span>f<span style="color: #94BFF3;">)</span>, <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #94BFF3;">&gt;(</span>t<span style="color: #94BFF3;">)</span>,
+    <span style="color: #859900;">std</span>::<span style="color: #268bd2;">make_index_sequence</span><span style="color: #94BFF3;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">tuple_size_v</span><span style="color: #dc322f;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">remove_reference_t</span><span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #859900;">&gt;</span><span style="color: #dc322f;">&gt;</span><span style="color: #94BFF3;">&gt;{}</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>
+</pre>
+</div>
+
+<p>
+I need to delegate to another function just to destructure the template argument.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org5a10f33">
+<h2 id="org5a10f33">C++20 <code>std::apply</code></h2>
+<p>
+How about immediately-invoking a lambda?
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #b58900; font-weight: bold;">constexpr</span> <span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #2aa198;">(</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">apply</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span>, <span style="color: #268bd2;">Tuple</span>&amp;&amp; <span style="color: #cb4b16;">t</span><span style="color: #2aa198;">)</span>
+<span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #b58900;">[</span>&amp;<span style="color: #b58900;">]</span> <span style="color: #b58900;">&lt;</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #2aa198;">...</span> <span style="color: #cb4b16;">Is</span><span style="color: #b58900;">&gt;</span> <span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">index_sequence</span><span style="color: #94BFF3;">&lt;</span>Is<span style="color: #2aa198;">...</span><span style="color: #94BFF3;">&gt;</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+      <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #859900;">std</span>::invoke<span style="color: #94BFF3;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #dc322f;">&lt;</span><span style="color: #268bd2;">F</span><span style="color: #dc322f;">&gt;(</span>f<span style="color: #dc322f;">)</span>,
+                         <span style="color: #859900;">std</span>::get<span style="color: #dc322f;">&lt;</span>Is<span style="color: #dc322f;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #859900;">&gt;(</span>t<span style="color: #859900;">)</span><span style="color: #dc322f;">)</span><span style="color: #2aa198;">...</span><span style="color: #94BFF3;">)</span>;
+  <span style="color: #b58900;">}(</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">make_index_sequence</span><span style="color: #94BFF3;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">tuple_size_v</span><span style="color: #dc322f;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">remove_reference_t</span><span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #859900;">&gt;</span><span style="color: #dc322f;">&gt;</span><span style="color: #94BFF3;">&gt;{}</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>
+</pre>
+</div>
+
+<p>
+A familiar template syntax immediately-invoked lambda expression (FTSIILE).
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org1c2f4b9">
+<h2 id="org1c2f4b9">Another example: for_each on tuples</h2>
+<p>
+Here's a simple unary for_each on tuples, using <code>std::apply</code>.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #268bd2;">F</span> <span style="color: #2aa198;">for_each</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">Tuple</span>&amp;&amp; <span style="color: #cb4b16;">t</span>, <span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #859900;">std</span>::apply<span style="color: #b58900;">(</span>
+    <span style="color: #94BFF3;">[</span>&amp;<span style="color: #94BFF3;">]</span> <span style="color: #94BFF3;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span><span style="color: #2aa198;">...</span> <span style="color: #268bd2;">Ts</span><span style="color: #94BFF3;">&gt;</span> <span style="color: #94BFF3;">(</span>Ts&amp;&amp;<span style="color: #2aa198;">...</span>ts<span style="color: #94BFF3;">)</span> <span style="color: #94BFF3;">{</span> <span style="color: #dc322f;">(</span>f<span style="color: #859900;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #268bd2;">&lt;</span><span style="color: #268bd2;">Ts</span><span style="color: #268bd2;">&gt;(</span>ts<span style="color: #268bd2;">)</span><span style="color: #859900;">)</span>, <span style="color: #2aa198;">...</span><span style="color: #dc322f;">)</span>; <span style="color: #94BFF3;">}</span>,
+    <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">Tuple</span><span style="color: #94BFF3;">&gt;(</span>t<span style="color: #94BFF3;">)</span><span style="color: #b58900;">)</span>, f;
+<span style="color: #2aa198;">}</span>
+</pre>
+</div>
+
+<p>
+But it gets trickier if we want a binary function over 2 tuples,<br />
+or an n-ary function over multiple tuples.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-orgcc610ba">
+<h2 id="orgcc610ba">Another example: for_each on tuples</h2>
+<p>
+Adapted from fluentcpp.com's <a href="https://www.fluentcpp.com/2019/03/08/stl-algorithms-on-tuples/">"STL algorithms on Tuples"</a>
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple1</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple2</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span>, <span style="color: #859900;">std</span>::<span style="color: #268bd2;">size_t</span><span style="color: #2aa198;">...</span> <span style="color: #cb4b16;">Is</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #268bd2;">F</span> <span style="color: #2aa198;">for_each_impl</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">Tuple1</span>&amp;&amp; <span style="color: #cb4b16;">t1</span>, <span style="color: #268bd2;">Tuple2</span>&amp;&amp; <span style="color: #cb4b16;">t2</span>, <span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span>, <span style="color: #859900;">std</span>::<span style="color: #268bd2;">index_sequence</span><span style="color: #b58900;">&lt;</span>Is<span style="color: #2aa198;">...</span><span style="color: #b58900;">&gt;</span><span style="color: #2aa198;">)</span>
+<span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::invoke<span style="color: #94BFF3;">(</span>f, <span style="color: #859900;">std</span>::get<span style="color: #dc322f;">&lt;</span>Is<span style="color: #dc322f;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple1</span><span style="color: #859900;">&gt;(</span>t1<span style="color: #859900;">)</span><span style="color: #dc322f;">)</span>,
+                         <span style="color: #859900;">std</span>::get<span style="color: #dc322f;">&lt;</span>Is<span style="color: #dc322f;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple2</span><span style="color: #859900;">&gt;(</span>t2<span style="color: #859900;">)</span><span style="color: #dc322f;">)</span><span style="color: #94BFF3;">)</span>, <span style="color: #2aa198;">...</span><span style="color: #b58900;">)</span>, f;
+<span style="color: #2aa198;">}</span>
+
+<span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple1</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple2</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #b58900; font-weight: bold;">constexpr</span> <span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #2aa198;">(</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">for_each</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">Tuple1</span>&amp;&amp; <span style="color: #cb4b16;">t1</span>, <span style="color: #268bd2;">Tuple2</span>&amp;&amp; <span style="color: #cb4b16;">t2</span>, <span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span><span style="color: #2aa198;">)</span>
+<span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> for_each_impl<span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">Tuple1</span><span style="color: #94BFF3;">&gt;(</span>t1<span style="color: #94BFF3;">)</span>, <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">Tuple2</span><span style="color: #94BFF3;">&gt;(</span>t2<span style="color: #94BFF3;">)</span>,
+                       <span style="color: #859900;">std</span>::forward<span style="color: #94BFF3;">&lt;</span><span style="color: #268bd2;">F</span><span style="color: #94BFF3;">&gt;(</span>f<span style="color: #94BFF3;">)</span>,
+                       <span style="color: #859900;">std</span>::<span style="color: #268bd2;">make_index_sequence</span><span style="color: #94BFF3;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #859900;">tuple_size</span><span style="color: #dc322f;">&lt;</span>
+                         <span style="color: #859900;">std</span>::<span style="color: #268bd2;">remove_reference_t</span><span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple1</span><span style="color: #859900;">&gt;</span><span style="color: #dc322f;">&gt;</span>::value<span style="color: #94BFF3;">&gt;{}</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>
+</pre>
+</div>
+
+</section>
+</section>
+<section>
+<section id="slide-org6abae4e">
+<h2 id="org6abae4e">for_each on tuples with FTSIILEs</h2>
+<p>
+Use reference-capture and variadic template head.
+</p>
+
+<div class="org-src-container">
+
+<pre  class="src src-c++"><span style="color: #b58900; font-weight: bold;">template</span> <span style="color: #2aa198;">&lt;</span><span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple1</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">Tuple2</span>, <span style="color: #b58900; font-weight: bold;">class</span> <span style="color: #268bd2;">F</span><span style="color: #2aa198;">&gt;</span>
+<span style="color: #b58900; font-weight: bold;">constexpr</span> <span style="color: #b58900; font-weight: bold;">decltype</span><span style="color: #2aa198;">(</span><span style="color: #b58900; font-weight: bold;">auto</span><span style="color: #2aa198;">)</span> <span style="color: #2aa198;">for_each</span><span style="color: #2aa198;">(</span><span style="color: #268bd2;">Tuple1</span>&amp;&amp; <span style="color: #cb4b16;">t1</span>, <span style="color: #268bd2;">Tuple2</span>&amp;&amp; <span style="color: #cb4b16;">t2</span>, <span style="color: #268bd2;">F</span>&amp;&amp; <span style="color: #cb4b16;">f</span><span style="color: #2aa198;">)</span>
+<span style="color: #2aa198;">{</span>
+  <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #b58900;">[</span>&amp;<span style="color: #b58900;">]</span> <span style="color: #b58900;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">size_t</span><span style="color: #2aa198;">...</span> <span style="color: #cb4b16;">Is</span><span style="color: #b58900;">&gt;</span> <span style="color: #b58900;">(</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">index_sequence</span><span style="color: #94BFF3;">&lt;</span>Is<span style="color: #2aa198;">...</span><span style="color: #94BFF3;">&gt;</span><span style="color: #b58900;">)</span> <span style="color: #b58900;">{</span>
+    <span style="color: #b58900; font-weight: bold;">return</span> <span style="color: #94BFF3;">(</span><span style="color: #859900;">std</span>::invoke<span style="color: #dc322f;">(</span>f, <span style="color: #859900;">std</span>::get<span style="color: #859900;">&lt;</span>Is<span style="color: #859900;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #268bd2;">&lt;</span><span style="color: #268bd2;">Tuple1</span><span style="color: #268bd2;">&gt;(</span>t1<span style="color: #268bd2;">)</span><span style="color: #859900;">)</span>,
+                           <span style="color: #859900;">std</span>::get<span style="color: #859900;">&lt;</span>Is<span style="color: #859900;">&gt;(</span><span style="color: #859900;">std</span>::forward<span style="color: #268bd2;">&lt;</span><span style="color: #268bd2;">Tuple2</span><span style="color: #268bd2;">&gt;(</span>t2<span style="color: #268bd2;">)</span><span style="color: #859900;">)</span><span style="color: #dc322f;">)</span>, <span style="color: #2aa198;">...</span><span style="color: #94BFF3;">)</span>, f;
+  <span style="color: #b58900;">}(</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">make_index_sequence</span><span style="color: #94BFF3;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #859900;">tuple_size</span><span style="color: #dc322f;">&lt;</span><span style="color: #859900;">std</span>::<span style="color: #268bd2;">remove_reference_t</span><span style="color: #859900;">&lt;</span><span style="color: #268bd2;">Tuple1</span><span style="color: #859900;">&gt;</span><span style="color: #dc322f;">&gt;</span>::value<span style="color: #94BFF3;">&gt;{}</span><span style="color: #b58900;">)</span>;
+<span style="color: #2aa198;">}</span>
+</pre>
+</div>
+
+<p>
+Less forwarding, less noise.
+</p>
+
+</section>
+</section>
+<section>
+<section id="slide-org64987e5">
+<h2 id="org64987e5">A little C++20 goodness</h2>
+<p>
+If you're delegating to an ancillary function just to destructure a type,
+consider a<br />
+Familiar Template Syntax Immediately-Invoked Lambda Expression.
+</p>
+
+<ul>
+<li>No more <code>decltype</code></li>
+<li>Reference-capture provides automatic value category preservation</li>
+<li>Simpler argument handling</li>
+<li>Especially useful for destructuring with <code>std::index_sequence</code></li>
+
+</ul>
+
+<p>
+FTSIILEs FTW!
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="../reveal.js/js/reveal.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: true,
+center: true,
+slideNumber: 'c/t',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+
+overview: true,
+width: 1600,
+height: 900,
+margin: 0.10,
+minScale: 0.50,
+maxScale: 2.50,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'none', // see README of reveal.js for options
+transitionSpeed: 'default',
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+ { src: '../reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: '../reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } }]
+
+});
+</script>
+</body>
+</html>
